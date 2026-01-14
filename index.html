@@ -40,7 +40,14 @@ body {
   width:10px;
   height:10px;
   border-radius:50%;
-  background:green;
+  background:gray;
+}
+button {
+  padding:10px 20px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
 }
 footer {
   text-align:center;
@@ -57,44 +64,36 @@ footer {
   <h1><i class="fas fa-microchip"></i> ESP32 IoT Dashboard</h1>
   <div class="status">
     <span class="dot" id="dot"></span>
-    <span id="status">Conectando...</span>
+    <span id="status">Conectando…</span>
     <span id="time"></span>
   </div>
+  <br>
+  <button onclick="fetchData()">🔄 Actualizar ahora</button>
 </div>
 
 <br>
 
 <div class="grid">
   <div class="card">
-    <h3>🌡️ Temperatura</h3>
+    <h3>🌡️ Temperatura (ThingSpeak)</h3>
     <div class="value"><span id="temp">--</span> °C</div>
   </div>
 
   <div class="card">
-    <h3>💧 Humedad</h3>
+    <h3>💧 Humedad (ThingSpeak)</h3>
     <div class="value"><span id="hum">--</span> %</div>
-  </div>
-
-  <div class="card">
-    <h3>🌀 Presión (simulada)</h3>
-    <div class="value"><span id="press">--</span> hPa</div>
-  </div>
-
-  <div class="card">
-    <h3>🌬️ Calidad Aire</h3>
-    <div class="value"><span id="air">--</span> AQI</div>
   </div>
 </div>
 
 <br>
 
 <div class="card">
-  <h3>📈 Histórico de Temperatura</h3>
+  <h3>📈 Histórico REAL de Temperatura</h3>
   <div id="chart"></div>
 </div>
 
 <footer>
-<p>ESP32 + ThingSpeak + GitHub Pages</p>
+<p>ESP32 → ThingSpeak → GitHub Pages (Actualización cada 15 s)</p>
 </footer>
 
 </div>
@@ -103,60 +102,62 @@ footer {
 // ================= CONFIG =================
 const CHANNEL_ID = 3229390;
 const READ_API_KEY = "IOUT49G2VKRMTKID";
+const REFRESH_TIME = 15000; // 15 segundos (recomendado)
 
 // ================= DOM =================
 const tempEl = document.getElementById("temp");
 const humEl = document.getElementById("hum");
-const pressEl = document.getElementById("press");
-const airEl = document.getElementById("air");
 const statusEl = document.getElementById("status");
 const dotEl = document.getElementById("dot");
 const timeEl = document.getElementById("time");
 
 // ================= CHART =================
 const chart = new ApexCharts(document.querySelector("#chart"), {
-  chart: { type: 'line', height: 300 },
-  series: [{ name: "Temperatura", data: [] }],
+  chart: { type: 'line', height: 300, animations: { enabled: true } },
+  series: [{ name: "Temperatura (°C)", data: [] }],
   xaxis: { type: 'datetime' }
 });
 chart.render();
 
-// ================= FUNCTIONS =================
-function airQuality(t,h){
-  return Math.max(0, Math.min(100, Math.round(100 - Math.abs(t-22)*2 - Math.abs(h-50))));
-}
-
+// ================= FETCH =================
 async function fetchData(){
-  try{
+  try {
     const res = await fetch(
-      `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=1`
+      `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=20`
     );
     const json = await res.json();
-    const d = json.feeds[0];
+    const feeds = json.feeds;
 
-    const temp = parseFloat(d.field1);
-    const hum = parseFloat(d.field2);
+    if (!feeds || feeds.length === 0) throw "Sin datos";
+
+    const last = feeds[feeds.length - 1];
+    const temp = parseFloat(last.field1);
+    const hum = parseFloat(last.field2);
 
     tempEl.textContent = temp.toFixed(1);
     humEl.textContent = hum.toFixed(1);
-    pressEl.textContent = (1013 + (temp-20)*0.5).toFixed(1);
-    airEl.textContent = airQuality(temp,hum);
 
-    chart.appendData([{ data: [[new Date(d.created_at).getTime(), temp]] }]);
+    timeEl.textContent = "Última lectura: " +
+      new Date(last.created_at).toLocaleTimeString();
 
-    dotEl.style.background = "green";
     statusEl.textContent = "ESP32 Online";
-    timeEl.textContent = new Date().toLocaleTimeString();
+    dotEl.style.background = "green";
 
-  }catch(e){
-    dotEl.style.background = "red";
+    const chartData = feeds
+      .filter(f => f.field1)
+      .map(f => [new Date(f.created_at).getTime(), parseFloat(f.field1)]);
+
+    chart.updateSeries([{ data: chartData }]);
+
+  } catch (e) {
     statusEl.textContent = "Sin conexión";
+    dotEl.style.background = "red";
   }
 }
 
 // ================= START =================
-fetchData();
-setInterval(fetchData, 10000);
+fetchData();                       // Carga inicial
+setInterval(fetchData, REFRESH_TIME); // Tiempo real controlado
 </script>
 </body>
 </html>
