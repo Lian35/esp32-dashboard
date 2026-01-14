@@ -10,51 +10,129 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <style>
+/* ================= VARIABLES ================= */
+:root {
+  --bg-main: #0f172a;        /* slate-900 */
+  --bg-card: #ffffff;
+  --primary: #2563eb;        /* blue-600 */
+  --secondary: #0ea5e9;      /* sky-500 */
+  --success: #22c55e;        /* green-500 */
+  --danger: #ef4444;         /* red-500 */
+  --text-dark: #0f172a;
+  --text-muted: #64748b;     /* slate-500 */
+  --shadow: 0 10px 25px rgba(0,0,0,.08);
+  --radius: 14px;
+}
+
+/* ================= GLOBAL ================= */
 body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg,#667eea,#764ba2);
-  padding:20px;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: radial-gradient(circle at top, #1e293b, #020617);
+  color: var(--text-dark);
+  padding: 30px;
 }
-.container { max-width:1200px; margin:auto; }
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* ================= CARDS ================= */
 .card {
-  background:white;
-  padding:20px;
-  border-radius:15px;
-  box-shadow:0 5px 15px rgba(0,0,0,.1);
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform .25s ease, box-shadow .25s ease;
 }
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0,0,0,.12);
+}
+
+/* ================= GRID ================= */
 .grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
 }
+
+/* ================= VALUES ================= */
 .value {
-  font-size:3rem;
-  font-weight:700;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 8px;
 }
+
+/* ================= STATUS ================= */
 .status {
-  display:flex;
-  align-items:center;
-  gap:8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .95rem;
+  color: var(--text-muted);
 }
+
 .dot {
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:gray;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-muted);
 }
+
+.dot.online { background: var(--success); }
+.dot.offline { background: var(--danger); }
+
+/* ================= BUTTON ================= */
 button {
-  padding:10px 20px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s ease;
 }
+
+button:hover {
+  opacity: .9;
+  transform: scale(1.05);
+}
+
+/* ================= TITLES ================= */
+h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+h3 {
+  font-size: .95rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+}
+
+/* ================= FOOTER ================= */
 footer {
-  text-align:center;
-  margin-top:30px;
-  color:white;
+  text-align: center;
+  margin-top: 40px;
+  font-size: .85rem;
+  color: #cbd5f5;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+  body { padding: 15px; }
+  .value { font-size: 2.3rem; }
 }
 </style>
+
 </head>
 
 <body>
